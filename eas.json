@@ -1,0 +1,43 @@
+{
+  "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "free",
+        "APP_PLATFORM": "android",
+        "APP_ENV": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "free",
+        "APP_PLATFORM": "android",
+        "APP_ENV": "development"
+      }
+    },
+    "android-free": {
+      "env": {
+        "APP_VARIANT": "free",
+        "APP_PLATFORM": "android",
+        "APP_ENV": "production"
+      }
+    },
+    "android-pro": {
+      "env": {
+        "APP_VARIANT": "pro",
+        "APP_PLATFORM": "android",
+        "APP_ENV": "production"
+      }
+    },
+    "ios-pro": {
+      "env": {
+        "APP_VARIANT": "pro",
+        "APP_PLATFORM": "ios",
+        "APP_ENV": "production"
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { AppCard, Screen, SectionHeader } from "../src/components";
 import { getFavorites, toggleFavorite } from "../src/storage/preferences";
 import { useTheme } from "../src/theme/ThemeContext";
 import { TranslationKey, useI18n } from "../src/i18n/I18nContext";
+import { AdBanner } from "../src/ads/AdBanner";
 const cards = [
   {
     key: "circles",
@@ -127,6 +128,7 @@ export default function Home() {
           </>
         )}
         {cards.map(render)}
+        <AdBanner />
       </ScrollView>
     </Screen>
   );

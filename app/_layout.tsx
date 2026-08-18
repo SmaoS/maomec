@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useTheme } from "../src/theme/ThemeContext";
 import { I18nProvider, useI18n } from "../src/i18n/I18nContext";
+import { AdProvider } from "../src/ads/AdProvider";
 function Navigation() {
   const { colors, darkMode } = useTheme();
   const { t } = useI18n();
@@ -33,7 +34,9 @@ export default function Layout() {
   return (
     <I18nProvider>
       <ThemeProvider>
-        <Navigation />
+        <AdProvider>
+          <Navigation />
+        </AdProvider>
       </ThemeProvider>
     </I18nProvider>
   );
