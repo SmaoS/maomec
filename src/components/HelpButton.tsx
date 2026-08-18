@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../theme/ThemeContext";
+import { useI18n } from "../i18n/I18nContext";
 
 export type HelpSection = { title: string; body: string };
 
@@ -22,13 +23,13 @@ export function HelpButton({
   sections: HelpSection[];
 }) {
   const { colors } = useTheme();
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Ayuda sobre ${title}`}
-        accessibilityHint="Abre una explicación sencilla"
+        accessibilityLabel={`${t("help")}: ${title}`}
         hitSlop={10}
         onPress={() => setVisible(true)}
         style={styles.button}
@@ -49,7 +50,7 @@ export function HelpButton({
             <View style={[styles.top, { borderBottomColor: colors.border }]}>
               <View style={styles.titleWrap}>
                 <Text style={[styles.eyebrow, { color: colors.primary }]}>
-                  AYUDA
+                  {t("help")}
                 </Text>
                 <Text style={[styles.title, { color: colors.text }]}>
                   {title}
@@ -57,7 +58,7 @@ export function HelpButton({
               </View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar ayuda"
+                accessibilityLabel={t("closeHelp")}
                 hitSlop={10}
                 onPress={() => setVisible(false)}
               >
@@ -96,7 +97,7 @@ export function HelpButton({
               onPress={() => setVisible(false)}
               style={[styles.closeButton, { backgroundColor: colors.primary }]}
             >
-              <Text style={styles.closeText}>ENTENDIDO</Text>
+              <Text style={styles.closeText}>{t("understood")}</Text>
             </Pressable>
           </View>
         </View>

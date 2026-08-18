@@ -1,15 +1,286 @@
-import { Ionicons } from '@expo/vector-icons';
-import { PropsWithChildren, ReactNode, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
-import { useTheme } from '../theme/ThemeContext';
-import { sanitizeNumericInput } from '../utils/input';
-export function Screen({children}:PropsWithChildren){const {colors}=useTheme();return <View style={[s.screen,{backgroundColor:colors.background}]}>{children}</View>}
-export function SectionHeader({title,subtitle}:{title:string;subtitle?:string}){const{colors}=useTheme();return <View style={s.header}><Text style={[s.h1,{color:colors.text}]}>{title}</Text>{subtitle&&<Text style={[s.sub,{color:colors.textSecondary}]}>{subtitle}</Text>}</View>}
-export function AppCard({title,description,icon,onPress,favorite,onFavorite}:{title:string;description:string;icon:keyof typeof Ionicons.glyphMap;onPress:()=>void;favorite?:boolean;onFavorite?:()=>void}){const{colors}=useTheme();return <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={[s.appCard,{backgroundColor:colors.surface,borderColor:colors.border}]}><Ionicons name={icon} size={30} color={colors.primary}/><View style={s.grow}><Text style={[s.cardTitle,{color:colors.text}]}>{title}</Text><Text style={[s.sub,{color:colors.textSecondary}]}>{description}</Text></View>{onFavorite&&<Pressable hitSlop={12} onPress={e=>{e.stopPropagation();onFavorite();}} accessibilityLabel={favorite?'Quitar de favoritos':'Agregar a favoritos'}><Ionicons name={favorite?'star':'star-outline'} size={23} color={favorite?'#F9A825':colors.textSecondary}/></Pressable>}</Pressable>}
-export function CalculatorCard({children}:PropsWithChildren){const{colors}=useTheme();return <View style={[s.calc,{backgroundColor:colors.surface,borderColor:colors.border}]}>{children}</View>}
-export function NumericInput({label,value,onChangeText,error,unit,...rest}:TextInputProps&{label:string;value:string;error?:string;unit?:string}){const{colors}=useTheme();return <View style={s.field}><Text style={[s.label,{color:colors.text}]}>{label}</Text><View style={[s.inputRow,{borderColor:error?colors.error:colors.border,backgroundColor:colors.background}]}><TextInput {...rest} accessibilityLabel={label} keyboardType="decimal-pad" value={value} onChangeText={t=>onChangeText?.(sanitizeNumericInput(t))} placeholderTextColor={colors.textSecondary} style={[s.input,{color:colors.text}]}/>{unit&&<Text style={{color:colors.textSecondary}}>{unit}</Text>}</View>{error&&<Text style={[s.error,{color:colors.error}]}>{error}</Text>}</View>}
-export function ResultCard({label,value,unit,details}:{label:string;value:string;unit?:string;details?:ReactNode}){const{colors}=useTheme();return <View style={[s.result,{backgroundColor:colors.primaryDark}]}><Text style={s.resultLabel}>{label.toUpperCase()}</Text><Text style={s.resultValue}>{value}</Text>{unit&&<Text style={s.resultUnit}>{unit}</Text>}{details}</View>}
-export function FormulaCard({formula,children}:{formula:string;children?:ReactNode}){const{colors}=useTheme();const[open,setOpen]=useState(false);return <View><Pressable onPress={()=>setOpen(v=>!v)}><Text style={[s.link,{color:colors.primary}]}>{open?'Ocultar fórmula':'Ver fórmula'}</Text></Pressable>{open&&<View style={[s.formula,{borderColor:colors.border}]}><Text style={[s.formulaText,{color:colors.text}]}>{formula}</Text>{children}</View>}</View>}
-export function Buttons({onCalculate,onClear}:{onCalculate:()=>void;onClear:()=>void}){const{colors}=useTheme();return <View style={s.buttons}><Pressable style={[s.button,{backgroundColor:colors.primary}]} onPress={onCalculate}><Text style={s.buttonText}>CALCULAR</Text></Pressable><Pressable style={[s.button,s.outline,{borderColor:colors.primary}]} onPress={onClear}><Text style={[s.buttonText,{color:colors.primary}]}>LIMPIAR</Text></Pressable></View>}
-const s=StyleSheet.create({screen:{flex:1,padding:16},header:{marginBottom:18},h1:{fontSize:28,fontWeight:'800'},sub:{fontSize:15,lineHeight:21},grow:{flex:1},appCard:{minHeight:118,padding:18,borderRadius:18,borderWidth:1,gap:12,flexDirection:'row',alignItems:'flex-start',marginBottom:12},cardTitle:{fontSize:18,fontWeight:'700',marginBottom:4},calc:{padding:16,borderRadius:16,borderWidth:1,gap:14,marginBottom:14},field:{gap:6},label:{fontSize:14,fontWeight:'600'},inputRow:{minHeight:52,borderWidth:1,borderRadius:10,paddingHorizontal:12,flexDirection:'row',alignItems:'center'},input:{flex:1,fontSize:18},error:{fontSize:12},buttons:{flexDirection:'row',gap:10},button:{minHeight:48,borderRadius:10,alignItems:'center',justifyContent:'center',paddingHorizontal:20,flex:1},outline:{backgroundColor:'transparent',borderWidth:1},buttonText:{color:'#fff',fontWeight:'800'},result:{borderRadius:16,padding:20,alignItems:'center',marginVertical:14},resultLabel:{color:'#B9D8FF',fontSize:12,fontWeight:'700'},resultValue:{color:'#fff',fontSize:42,fontWeight:'800'},resultUnit:{color:'#fff',fontSize:18},link:{fontWeight:'700',paddingVertical:8},formula:{borderWidth:1,borderRadius:10,padding:12},formulaText:{fontSize:18,fontWeight:'700'},resultDetails:{color:'#DCEEFF',marginTop:6},row:{flexDirection:'row',gap:10}});
-export const styles=s;
+import { Ionicons } from "@expo/vector-icons";
+import { PropsWithChildren, ReactNode, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from "react-native";
+import { useTheme } from "../theme/ThemeContext";
+import { sanitizeNumericInput } from "../utils/input";
+import { useI18n } from "../i18n/I18nContext";
+export function Screen({ children }: PropsWithChildren) {
+  const { colors } = useTheme();
+  return (
+    <View style={[s.screen, { backgroundColor: colors.background }]}>
+      {children}
+    </View>
+  );
+}
+export function SectionHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={s.header}>
+      <Text style={[s.h1, { color: colors.text }]}>{title}</Text>
+      {subtitle && (
+        <Text style={[s.sub, { color: colors.textSecondary }]}>{subtitle}</Text>
+      )}
+    </View>
+  );
+}
+export function AppCard({
+  title,
+  description,
+  icon,
+  onPress,
+  favorite,
+  onFavorite,
+}: {
+  title: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+  favorite?: boolean;
+  onFavorite?: () => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={onPress}
+      style={[
+        s.appCard,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
+      <Ionicons name={icon} size={30} color={colors.primary} />
+      <View style={s.grow}>
+        <Text style={[s.cardTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[s.sub, { color: colors.textSecondary }]}>
+          {description}
+        </Text>
+      </View>
+      {onFavorite && (
+        <Pressable
+          hitSlop={12}
+          onPress={(e) => {
+            e.stopPropagation();
+            onFavorite();
+          }}
+          accessibilityLabel={
+            favorite ? "Quitar de favoritos" : "Agregar a favoritos"
+          }
+        >
+          <Ionicons
+            name={favorite ? "star" : "star-outline"}
+            size={23}
+            color={favorite ? "#F9A825" : colors.textSecondary}
+          />
+        </Pressable>
+      )}
+    </Pressable>
+  );
+}
+export function CalculatorCard({ children }: PropsWithChildren) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={[
+        s.calc,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+export function NumericInput({
+  label,
+  value,
+  onChangeText,
+  error,
+  unit,
+  ...rest
+}: TextInputProps & {
+  label: string;
+  value: string;
+  error?: string;
+  unit?: string;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={s.field}>
+      <Text style={[s.label, { color: colors.text }]}>{label}</Text>
+      <View
+        style={[
+          s.inputRow,
+          {
+            borderColor: error ? colors.error : colors.border,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
+        <TextInput
+          {...rest}
+          accessibilityLabel={label}
+          keyboardType="decimal-pad"
+          value={value}
+          onChangeText={(t) => onChangeText?.(sanitizeNumericInput(t))}
+          placeholderTextColor={colors.textSecondary}
+          style={[s.input, { color: colors.text }]}
+        />
+        {unit && <Text style={{ color: colors.textSecondary }}>{unit}</Text>}
+      </View>
+      {error && <Text style={[s.error, { color: colors.error }]}>{error}</Text>}
+    </View>
+  );
+}
+export function ResultCard({
+  label,
+  value,
+  unit,
+  details,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  details?: ReactNode;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View style={[s.result, { backgroundColor: colors.primaryDark }]}>
+      <Text style={s.resultLabel}>{label.toUpperCase()}</Text>
+      <Text style={s.resultValue}>{value}</Text>
+      {unit && <Text style={s.resultUnit}>{unit}</Text>}
+      {details}
+    </View>
+  );
+}
+export function FormulaCard({
+  formula,
+  children,
+}: {
+  formula: string;
+  children?: ReactNode;
+}) {
+  const { colors } = useTheme();
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  return (
+    <View>
+      <Pressable onPress={() => setOpen((v) => !v)}>
+        <Text style={[s.link, { color: colors.primary }]}>
+          {open ? t("hideFormula") : t("showFormula")}
+        </Text>
+      </Pressable>
+      {open && (
+        <View style={[s.formula, { borderColor: colors.border }]}>
+          <Text style={[s.formulaText, { color: colors.text }]}>{formula}</Text>
+          {children}
+        </View>
+      )}
+    </View>
+  );
+}
+export function Buttons({
+  onCalculate,
+  onClear,
+  calculateLabel,
+}: {
+  onCalculate: () => void;
+  onClear: () => void;
+  calculateLabel?: string;
+}) {
+  const { colors } = useTheme();
+  const { t } = useI18n();
+  return (
+    <View style={s.buttons}>
+      <Pressable
+        style={[s.button, { backgroundColor: colors.primary }]}
+        onPress={onCalculate}
+      >
+        <Text style={s.buttonText}>{calculateLabel ?? t("calculate")}</Text>
+      </Pressable>
+      <Pressable
+        style={[s.button, s.outline, { borderColor: colors.primary }]}
+        onPress={onClear}
+      >
+        <Text style={[s.buttonText, { color: colors.primary }]}>
+          {t("clear")}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+const s = StyleSheet.create({
+  screen: { flex: 1, padding: 16 },
+  header: { marginBottom: 18 },
+  h1: { fontSize: 28, fontWeight: "800" },
+  sub: { fontSize: 15, lineHeight: 21 },
+  grow: { flex: 1 },
+  appCard: {
+    minHeight: 118,
+    padding: 18,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 12,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 4 },
+  calc: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 14,
+    marginBottom: 14,
+  },
+  field: { gap: 6 },
+  label: { fontSize: 14, fontWeight: "600" },
+  inputRow: {
+    minHeight: 52,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  input: { flex: 1, fontSize: 18 },
+  error: { fontSize: 12 },
+  buttons: { flexDirection: "row", gap: 10 },
+  button: {
+    minHeight: 48,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  outline: { backgroundColor: "transparent", borderWidth: 1 },
+  buttonText: { color: "#fff", fontWeight: "800" },
+  result: {
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    marginVertical: 14,
+  },
+  resultLabel: { color: "#B9D8FF", fontSize: 12, fontWeight: "700" },
+  resultValue: { color: "#fff", fontSize: 42, fontWeight: "800" },
+  resultUnit: { color: "#fff", fontSize: 18 },
+  link: { fontWeight: "700", paddingVertical: 8 },
+  formula: { borderWidth: 1, borderRadius: 10, padding: 12 },
+  formulaText: { fontSize: 18, fontWeight: "700" },
+  resultDetails: { color: "#DCEEFF", marginTop: 6 },
+  row: { flexDirection: "row", gap: 10 },
+});
+export const styles = s;

@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
 import { chordHelp } from "../src/content/calculatorHelp";
+import { chordHelpEn } from "../src/content/calculatorHelp.en";
+import { useI18n } from "../src/i18n/I18nContext";
 import {
   Buttons,
   CalculatorCard,
@@ -10,13 +12,13 @@ import {
   NumericInput,
   ResultCard,
   Screen,
-  SectionHeader,
   styles,
 } from "../src/components";
 import { calculateChordLength, roundForDisplay } from "../src/domain/math";
 import { saveHistory } from "../src/storage/preferences";
 import { parseLocalizedNumber } from "../src/utils/input";
 export default function Chord() {
+  const { language, t } = useI18n();
   const [n, setN] = useState("");
   const [d, setD] = useState("");
   const [result, setResult] = useState<ReturnType<
@@ -28,42 +30,48 @@ export default function Chord() {
       const holes = parseLocalizedNumber(n),
         diameter = parseLocalizedNumber(d);
       if (holes === null || diameter === null)
-        throw new Error("Completa los datos para calcular.");
+        throw new Error(t("completeData"));
       const r = calculateChordLength(holes, diameter);
       setResult(r);
       setError("");
       void saveHistory({
-        type: "Longitud de cuerda",
-        summary: `${holes} agujeros · Ø${diameter} mm`,
+        type: t("chord"),
+        summary: `${holes} ${t("holes")} · Ø${diameter} mm`,
         result: `${roundForDisplay(r.chord)} mm`,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Datos inválidos");
+      setError(
+        e instanceof Error && e.message === t("completeData")
+          ? e.message
+          : t("invalidData"),
+      );
       setResult(null);
     }
   };
   const text = result
-    ? `MaoMec\n\nLongitud de cuerda\nDiámetro: ${d} mm\nAgujeros: ${n}\nSeparación angular: ${roundForDisplay(result.angle)}°\nLongitud: ${roundForDisplay(result.chord)} mm`
+    ? language === "es"
+      ? `MaoMec\n\nLongitud de cuerda\nDiámetro: ${d} mm\nAgujeros: ${n}\nSeparación angular: ${roundForDisplay(result.angle)}°\nLongitud: ${roundForDisplay(result.chord)} mm`
+      : `MaoMec\n\nChord length\nDiameter: ${d} mm\nHoles: ${n}\nAngular spacing: ${roundForDisplay(result.angle)}°\nChord: ${roundForDisplay(result.chord)} mm`
     : "";
   return (
     <>
       <Stack.Screen
-        options={{ headerRight: () => <HelpButton {...chordHelp} /> }}
+        options={{
+          headerRight: () => (
+            <HelpButton {...(language === "es" ? chordHelp : chordHelpEn)} />
+          ),
+        }}
       />
       <Screen>
         <ScrollView>
-          <SectionHeader
-            title="Longitud de cuerda"
-            subtitle="Distancia recta entre perforaciones consecutivas."
-          />
           <CalculatorCard>
             <NumericInput
-              label="Cantidad de agujeros"
+              label={t("holeCount")}
               value={n}
               onChangeText={setN}
             />
             <NumericInput
-              label="Diámetro del círculo"
+              label={t("circleDiameter")}
               value={d}
               onChangeText={setD}
               unit="mm"
@@ -79,22 +87,26 @@ export default function Chord() {
               }}
             />
             <FormulaCard formula="C = D × sin(180° / N)">
-              <Text>C: cuerda · D: diámetro · N: agujeros</Text>
+              <Text>
+                {language === "es"
+                  ? "C: cuerda · D: diámetro · N: agujeros"
+                  : "C: chord · D: diameter · N: holes"}
+              </Text>
             </FormulaCard>
           </CalculatorCard>
           {result && (
             <>
               <ResultCard
-                label="Longitud de cuerda"
+                label={t("chord")}
                 value={`${roundForDisplay(result.chord)}`}
                 unit="mm"
                 details={
                   <>
                     <Text style={styles.resultDetails}>
-                      Radio: {roundForDisplay(result.radius)} mm
+                      {t("radius")}: {roundForDisplay(result.radius)} mm
                     </Text>
                     <Text style={styles.resultDetails}>
-                      Separación: {roundForDisplay(result.angle)}°
+                      {t("separation")}: {roundForDisplay(result.angle)}°
                     </Text>
                   </>
                 }
@@ -103,7 +115,7 @@ export default function Chord() {
                 style={styles.link}
                 onPress={() => void Share.share({ message: text })}
               >
-                Compartir resultado
+                {t("shareResult")}
               </Text>
             </>
           )}

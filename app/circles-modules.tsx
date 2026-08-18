@@ -3,6 +3,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
 import { circlesHelp } from "../src/content/calculatorHelp";
+import { circlesHelpEn } from "../src/content/calculatorHelp.en";
+import { useI18n } from "../src/i18n/I18nContext";
 import {
   Buttons,
   CalculatorCard,
@@ -10,7 +12,6 @@ import {
   NumericInput,
   ResultCard,
   Screen,
-  SectionHeader,
   styles,
 } from "../src/components";
 import {
@@ -27,16 +28,17 @@ import { useTheme } from "../src/theme/ThemeContext";
 import { parseLocalizedNumber } from "../src/utils/input";
 type Mode =
   "module" | "pitchDiameter" | "outside" | "pitch" | "fromPitch" | "divider";
-const modes: [Mode, string][] = [
-  ["divider", "Cabezal divisor"],
-  ["module", "Módulo"],
-  ["pitchDiameter", "Ø primitivo"],
-  ["outside", "Ø exterior"],
-  ["pitch", "Paso circular"],
-  ["fromPitch", "M desde paso"],
-];
 export default function Circles() {
   const { colors } = useTheme();
+  const { language, t } = useI18n();
+  const modes: [Mode, string][] = [
+    ["divider", t("divider")],
+    ["module", t("module")],
+    ["pitchDiameter", t("pitchDiameter")],
+    ["outside", t("outsideDiameter")],
+    ["pitch", t("circularPitch")],
+    ["fromPitch", t("moduleFromPitch")],
+  ];
   const [mode, setMode] = useState<Mode>("module"),
     [a, setA] = useState(""),
     [b, setB] = useState(""),
@@ -45,23 +47,24 @@ export default function Circles() {
     [error, setError] = useState("");
   const two = !["pitch", "fromPitch"].includes(mode);
   const labels: Record<Mode, [string, string, string]> = {
-    module: ["Diámetro primitivo", "Número de dientes", "M = Dp / Z"],
-    pitchDiameter: ["Módulo", "Número de dientes", "Dp = M × Z"],
-    outside: ["Módulo", "Número de dientes", "De = M × (Z + 2)"],
-    pitch: ["Módulo", "", "P = π × M"],
-    fromPitch: ["Paso circular", "", "M = P / π"],
+    module: [t("pitchDiameter"), t("teeth"), "M = Dp / Z"],
+    pitchDiameter: [t("module"), t("teeth"), "Dp = M × Z"],
+    outside: [t("module"), t("teeth"), "De = M × (Z + 2)"],
+    pitch: [t("module"), "", "P = π × M"],
+    fromPitch: [t("circularPitch"), "", "M = P / π"],
     divider: [
-      "Relación del divisor",
-      "Cantidad de divisiones",
-      "vueltas = relación / divisiones",
+      t("dividerRatio"),
+      t("divisions"),
+      language === "es"
+        ? "vueltas = relación / divisiones"
+        : "turns = ratio / divisions",
     ],
   };
   const calc = () => {
     try {
       const x = parseLocalizedNumber(a),
         y = parseLocalizedNumber(b);
-      if (x === null || (two && y === null))
-        throw new Error("Completa los datos para calcular.");
+      if (x === null || (two && y === null)) throw new Error(t("completeData"));
       let value: number,
         unit = " mm",
         extra: string[] = [];
@@ -75,7 +78,7 @@ export default function Circles() {
         case "outside":
           value = calculateOutsideDiameter(x, y!);
           extra = [
-            `Diámetro primitivo: ${roundForDisplay(calculatePitchDiameter(x, y!))} mm`,
+            `${t("pitchDiameter")}: ${roundForDisplay(calculatePitchDiameter(x, y!))} mm`,
           ];
           break;
         case "pitch":
@@ -87,13 +90,13 @@ export default function Circles() {
         case "divider": {
           const r = calculateDividingHead(x, y!);
           value = r.turns;
-          unit = " vueltas";
+          unit = ` ${t("turns")}`;
           extra = r.combinations.length
             ? r.combinations.map(
                 (c) =>
-                  `${r.fullTurns} vuelta${r.fullTurns === 1 ? "" : "s"} + ${c.holes} agujeros / círculo de ${c.circle}`,
+                  `${r.fullTurns} ${r.fullTurns === 1 ? t("fullTurn") : t("fullTurns")} + ${c.holes} ${t("holes")} / ${t("holeCircle")} ${c.circle}`,
               )
-            : ["No hay combinación exacta con los platos configurados."];
+            : [t("noPlate")];
           break;
         }
       }
@@ -101,26 +104,32 @@ export default function Circles() {
       setDetails(extra);
       setError("");
       void saveHistory({
-        type: mode === "divider" ? "Cabezal divisor" : "Engranajes",
+        type: mode === "divider" ? t("divider") : t("circles"),
         summary: `${labels[mode][0]}: ${a}${two ? ` · ${labels[mode][1]}: ${b}` : ""}`,
         result: `${roundForDisplay(value!)}${unit}`,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Datos inválidos");
+      setError(
+        e instanceof Error && e.message === t("completeData")
+          ? e.message
+          : t("invalidData"),
+      );
       setResult("");
     }
   };
   return (
     <>
       <Stack.Screen
-        options={{ headerRight: () => <HelpButton {...circlesHelp[mode]} /> }}
+        options={{
+          headerRight: () => (
+            <HelpButton
+              {...(language === "es" ? circlesHelp[mode] : circlesHelpEn[mode])}
+            />
+          ),
+        }}
       />
       <Screen>
         <ScrollView>
-          <SectionHeader
-            title="Círculos y módulos"
-            subtitle="Engranajes, pasos y divisiones de taller."
-          />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -187,14 +196,16 @@ export default function Circles() {
           </CalculatorCard>
           {result && (
             <ResultCard
-              label={mode === "divider" ? "Vueltas de manivela" : "Resultado"}
+              label={mode === "divider" ? t("crankTurns") : t("result")}
               value={result}
-              unit={mode === "divider" ? "vueltas" : "mm"}
+              unit={mode === "divider" ? t("turns") : "mm"}
               details={
                 <View>
                   {details.map((x, i) => (
                     <Text key={i} style={styles.resultDetails}>
-                      {i === 0 && mode === "divider" ? "Recomendado: " : ""}
+                      {i === 0 && mode === "divider"
+                        ? `${t("recommended")}: `
+                        : ""}
                       {x}
                     </Text>
                   ))}

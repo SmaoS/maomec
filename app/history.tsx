@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { Screen, SectionHeader } from "../src/components";
+import { Screen } from "../src/components";
 import {
   clearHistory,
   deleteHistory,
@@ -9,8 +9,10 @@ import {
   HistoryItem,
 } from "../src/storage/preferences";
 import { useTheme } from "../src/theme/ThemeContext";
+import { useI18n } from "../src/i18n/I18nContext";
 export default function History() {
   const { colors } = useTheme();
+  const { language, t } = useI18n();
   const [items, setItems] = useState<HistoryItem[]>([]);
   useFocusEffect(
     useCallback(() => {
@@ -18,26 +20,21 @@ export default function History() {
     }, []),
   );
   const clear = () =>
-    Alert.alert(
-      "Borrar historial",
-      "Esta acción eliminará todos los cálculos guardados.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Borrar",
-          style: "destructive",
-          onPress: () => void clearHistory().then(() => setItems([])),
-        },
-      ],
-    );
+    Alert.alert(t("clearHistoryTitle"), t("clearHistoryBody"), [
+      { text: t("cancel"), style: "cancel" },
+      {
+        text: t("delete"),
+        style: "destructive",
+        onPress: () => void clearHistory().then(() => setItems([])),
+      },
+    ]);
   return (
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <SectionHeader title="Historial" subtitle="Últimos 50 cálculos" />
         {items.length > 0 && (
           <Pressable onPress={clear}>
             <Text style={{ color: colors.error, fontWeight: "700" }}>
-              Borrar todo
+              {t("clearAll")}
             </Text>
           </Pressable>
         )}
@@ -51,7 +48,7 @@ export default function History() {
               marginTop: 60,
             }}
           >
-            Todavía no hay cálculos guardados.
+            {t("emptyHistory")}
           </Text>
         ) : (
           items.map((item) => (
@@ -84,7 +81,7 @@ export default function History() {
                 <Pressable
                   onPress={() => void deleteHistory(item.id).then(setItems)}
                 >
-                  <Text style={{ color: colors.error }}>Eliminar</Text>
+                  <Text style={{ color: colors.error }}>{t("delete")}</Text>
                 </Pressable>
               </View>
               <Text style={{ color: colors.textSecondary, marginTop: 5 }}>
@@ -107,7 +104,7 @@ export default function History() {
                   marginTop: 5,
                 }}
               >
-                {new Date(item.createdAt).toLocaleString("es")}
+                {new Date(item.createdAt).toLocaleString(language)}
               </Text>
             </View>
           ))
