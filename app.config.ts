@@ -2,6 +2,10 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 
 const ANDROID_TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 const IOS_TEST_APP_ID = "ca-app-pub-3940256099942544~1458002511";
+const ANDROID_PRODUCTION_APP_ID =
+  "ca-app-pub-7328351405221100~2738369588";
+const ANDROID_PRODUCTION_BANNER_ID =
+  "ca-app-pub-7328351405221100/9822547489";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const variant = process.env.APP_VARIANT === "free" ? "free" : "pro";
@@ -14,10 +18,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   );
   const androidAppId =
     production && variant === "free"
-      ? process.env.ADMOB_ANDROID_APP_ID
+      ? ANDROID_PRODUCTION_APP_ID
       : ANDROID_TEST_APP_ID;
   const bannerId =
-    production && variant === "free" ? process.env.ADMOB_ANDROID_BANNER_ID : "";
+    production && variant === "free"
+      ? ANDROID_PRODUCTION_BANNER_ID
+      : "";
   return {
     ...config,
     name: isAndroidPro ? "MaoMec Pro" : "MaoMec",
@@ -74,12 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       appVariant: variant,
       appEnvironment: production ? "production" : "development",
       admobAndroidBannerId: bannerId,
-      adsConfigured:
-        !production ||
-        Boolean(
-          process.env.ADMOB_ANDROID_APP_ID &&
-          process.env.ADMOB_ANDROID_BANNER_ID,
-        ),
+      adsConfigured: !production || variant === "free",
     },
   };
 };

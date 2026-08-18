@@ -2,6 +2,7 @@ import { Share, ScrollView, Text } from "react-native";
 import { useState } from "react";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
+import { AdBanner } from "../src/ads/AdBanner";
 import { chordHelp } from "../src/content/calculatorHelp";
 import { chordHelpEn } from "../src/content/calculatorHelp.en";
 import { useI18n } from "../src/i18n/I18nContext";
@@ -119,6 +120,7 @@ export default function Chord() {
               </Text>
             </>
           )}
+          <AdBanner />
         </ScrollView>
       </Screen>
     </>

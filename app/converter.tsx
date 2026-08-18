@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
+import { AdBanner } from "../src/ads/AdBanner";
 import { converterHelp } from "../src/content/calculatorHelp";
 import { converterHelpEn } from "../src/content/calculatorHelp.en";
 import { useI18n } from "../src/i18n/I18nContext";
@@ -197,6 +198,7 @@ export default function Converter() {
               }
             />
           )}
+          <AdBanner />
         </ScrollView>
       </Screen>
     </>

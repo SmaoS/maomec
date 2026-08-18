@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ScrollView, Text } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
+import { AdBanner } from "../src/ads/AdBanner";
 import { coneHelp } from "../src/content/calculatorHelp";
 import { coneHelpEn } from "../src/content/calculatorHelp.en";
 import { useI18n } from "../src/i18n/I18nContext";
@@ -113,6 +114,7 @@ export default function Cone() {
               }
             />
           )}
+          <AdBanner />
         </ScrollView>
       </Screen>
     </>

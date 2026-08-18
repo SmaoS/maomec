@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
+import { AdBanner } from "../src/ads/AdBanner";
 import { angularDividerHelp, circlesHelp } from "../src/content/calculatorHelp";
 import {
   angularDividerHelpEn,
@@ -284,6 +285,7 @@ export default function Circles() {
               }
             />
           )}
+          <AdBanner />
         </ScrollView>
       </Screen>
     </>

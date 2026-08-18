@@ -8,6 +8,7 @@ import { appConfig } from "../config/appConfig";
 import { useTheme } from "../theme/ThemeContext";
 import { adConfig } from "./adConfig";
 import { useAds } from "./AdProvider";
+import { loadGoogleMobileAds } from "./adService";
 
 export function AdBanner() {
   const { canRequestAds } = useAds();
@@ -16,24 +17,30 @@ export function AdBanner() {
     BannerAd: ComponentType<BannerAdProps>;
     bannerSize: BannerAdSizeType;
   } | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!appConfig.adsEnabled) return;
     let active = true;
-    void import("react-native-google-mobile-ads").then((module) => {
-      if (active) {
+    void loadGoogleMobileAds().then((module) => {
+      if (active && module) {
         setNativeAds({
           BannerAd: module.BannerAd,
           bannerSize: module.BannerAdSize.ANCHORED_ADAPTIVE_BANNER,
         });
-      }
+      } else if (active) setFailed(true);
     });
     return () => {
       active = false;
     };
   }, []);
 
-  if (!appConfig.adsEnabled || !canRequestAds || !adConfig.bannerUnitId)
+  if (
+    !appConfig.adsEnabled ||
+    !canRequestAds ||
+    !adConfig.bannerUnitId ||
+    failed
+  )
     return null;
   if (!nativeAds) return null;
   const NativeBannerAd = nativeAds.BannerAd;
@@ -53,6 +60,7 @@ export function AdBanner() {
         unitId={adConfig.bannerUnitId}
         size={nativeAds.bannerSize}
         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        onAdFailedToLoad={() => setFailed(true)}
       />
     </View>
   );

@@ -93,7 +93,13 @@ android/app/build/outputs/bundle/release/
 
 `build-versions.json` mantiene contadores independientes para Free y Pro. Tras cada build correcto, el script incrementa automáticamente el próximo `versionCode`; este archivo sí debe confirmarse en Git.
 
-Para Free de producción, defina localmente `ADMOB_ANDROID_APP_ID` y `ADMOB_ANDROID_BANNER_ID` antes de compilar. Para un APK Free de prueba puede ejecutar directamente:
+### Publicidad AdMob
+
+AdMob está centralizado en `app.config.ts` (App ID nativo) y `src/ads/adConfig.ts` (selección del banner). Android Free de producción utiliza el Banner ID real proporcionado por AdMob. Los builds de desarrollo utilizan exclusivamente los identificadores oficiales de prueba de Google; no pruebe repetidamente con el anuncio real.
+
+`src/ads/adService.ts` comprueba el consentimiento UMP antes de inicializar el SDK. Android Pro e iOS Pro tienen `appConfig.adsEnabled === false`: no inicializan AdMob, no solicitan consentimiento publicitario y no cargan banners. Expo Go tampoco carga el módulo nativo; para comprobar el banner de prueba se necesita un development build o un APK Free de desarrollo.
+
+Para un APK Free con anuncios de prueba puede ejecutar:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build-android-local.ps1 -Variant free -Artifact apk -DevelopmentAds
@@ -110,11 +116,12 @@ Los AAB locales se cargan manualmente en Google Play Console. El IPA de EAS pasa
 
 Para desarrollo, copie `.env.example` como `.env`; se usan exclusivamente los IDs oficiales de prueba. AdMob contiene código nativo, por lo que requiere un development build (`eas build --profile development`) y no funciona en Expo Go.
 
-La primera publicación Android Free puede generarse sin IDs reales. En ese caso se usa un App ID oficial de prueba únicamente para completar la configuración nativa, pero la aplicación deshabilita AdMob completamente: no inicializa el SDK, no solicita anuncios y no muestra banners. Cuando AdMob habilite la aplicación, configure `ADMOB_ANDROID_APP_ID` y `ADMOB_ANDROID_BANNER_ID` y genere una actualización. Android/iOS Pro tampoco inicializan AdMob ni solicitan anuncios.
+Los IDs de AdMob no son contraseñas, pero deben mantenerse centralizados y no repetirse en las pantallas. Para verificar producción genere `android-free`; para pruebas use `-DevelopmentAds`. Android/iOS Pro tampoco inicializan AdMob ni solicitan anuncios.
 
 ### Privacidad pendiente
 
 - TODO: proporcionar la URL y el contenido legal de la política de privacidad del propietario.
-- TODO: crear la aplicación Android Free y configurar Privacy & messaging (UMP) en AdMob.
+- Configurar y publicar el mensaje de consentimiento en **AdMob → Privacy & messaging** para las regiones donde sea obligatorio. El SDK UMP ya está integrado, pero el texto y la segmentación se administran desde AdMob.
+- Añadir en la política de privacidad el uso de Google Mobile Ads, los datos tratados y un mecanismo para retirar/cambiar el consentimiento cuando corresponda.
 - TODO: declarar en Google Play que Android Free contiene anuncios.
 - El proveedor solicita información de consentimiento UMP antes de inicializar AdMob y no carga anuncios si no existe permiso para solicitarlos.
