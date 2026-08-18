@@ -5,7 +5,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import mobileAds, { AdsConsent } from "react-native-google-mobile-ads";
 import { appConfig } from "../config/appConfig";
 
 const AdContext = createContext({ canRequestAds: false });
@@ -18,6 +17,9 @@ export function AdProvider({ children }: PropsWithChildren) {
     let active = true;
     void (async () => {
       try {
+        const { default: mobileAds, AdsConsent } = await import(
+          "react-native-google-mobile-ads"
+        );
         await AdsConsent.requestInfoUpdate();
         const consent = await AdsConsent.loadAndShowConsentFormIfRequired();
         if (!consent.canRequestAds || !active) return;

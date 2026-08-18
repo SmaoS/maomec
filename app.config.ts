@@ -8,23 +8,24 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const buildPlatform = process.env.APP_PLATFORM === "ios" ? "ios" : "android";
   const production = process.env.APP_ENV === "production";
   const isAndroidPro = buildPlatform === "android" && variant === "pro";
+  const androidVersionCode = Number.parseInt(
+    process.env.ANDROID_VERSION_CODE ?? "1",
+    10,
+  );
   const androidAppId =
     production && variant === "free"
       ? process.env.ADMOB_ANDROID_APP_ID
       : ANDROID_TEST_APP_ID;
   const bannerId =
     production && variant === "free" ? process.env.ADMOB_ANDROID_BANNER_ID : "";
-  if (production && variant === "free" && (!androidAppId || !bannerId))
-    throw new Error(
-      "Android Free production requires ADMOB_ANDROID_APP_ID and ADMOB_ANDROID_BANNER_ID.",
-    );
   return {
     ...config,
     name: isAndroidPro ? "MaoMec Pro" : "MaoMec",
+    owner: "tecngo",
     slug: "maomec",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./icon-app-maomec.png",
     scheme: "maomec",
     userInterfaceStyle: "automatic",
     ios: {
@@ -34,14 +35,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: variant === "free" ? "com.maomec.app" : "com.maomec.pro",
-      versionCode: 1,
+      versionCode:
+        Number.isFinite(androidVersionCode) && androidVersionCode > 0
+          ? androidVersionCode
+          : 1,
+      icon: "./icon-app-maomec.png",
       predictiveBackGestureEnabled: false,
-      adaptiveIcon: {
-        backgroundColor: "#E6F4FE",
-        foregroundImage: "./assets/android-icon-foreground.png",
-        backgroundImage: "./assets/android-icon-background.png",
-        monochromeImage: "./assets/android-icon-monochrome.png",
-      },
     },
     web: { favicon: "./assets/favicon.png" },
     plugins: [
@@ -63,12 +62,24 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           iosAppId: IOS_TEST_APP_ID,
         },
       ],
+      ...(process.env.LOCAL_ANDROID_SIGNING === "true"
+        ? ["./plugins/withLocalAndroidSigning.js"]
+        : []),
     ],
     extra: {
       ...config.extra,
+      eas: {
+        projectId: "c60d565f-b16c-4d9a-bafe-e732079b2148",
+      },
       appVariant: variant,
       appEnvironment: production ? "production" : "development",
       admobAndroidBannerId: bannerId,
+      adsConfigured:
+        !production ||
+        Boolean(
+          process.env.ADMOB_ANDROID_APP_ID &&
+          process.env.ADMOB_ANDROID_BANNER_ID,
+        ),
     },
   };
 };
