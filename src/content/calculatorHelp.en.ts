@@ -98,6 +98,26 @@ export const circlesHelpEn: Record<string, Help> = {
     ],
   },
 };
+export const angularDividerHelpEn: Help = {
+  title: "Dividing head by angles",
+  intro:
+    "Shows the exact angular position for every machining operation around the part.",
+  sections: [
+    {
+      title: "Number of divisions",
+      body: "The total number of teeth, slots, holes or faces to distribute over one full revolution.",
+    },
+    {
+      title: "Starting angle",
+      body: "The position where machining begins. Leave it empty for 0°, or enter 5 to place the first feature at 5°.",
+    },
+    {
+      title: "Angular increment",
+      body: "The angle to advance between operations. The list shows every absolute position to set on a graduated rotary table or dividing head.",
+    },
+  ],
+};
+
 export const coneHelpEn: Help = {
   title: "Taper angles",
   intro:

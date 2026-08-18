@@ -111,6 +111,26 @@ export const circlesHelp = {
   { title: string; intro: string; sections: HelpSection[] }
 >;
 
+export const angularDividerHelp = {
+  title: "Cabezal divisor por ángulos",
+  intro:
+    "Muestra el ángulo exacto donde debe realizarse cada mecanizado alrededor de la pieza.",
+  sections: [
+    {
+      title: "Cantidad de divisiones",
+      body: "Es el número total de dientes, ranuras, agujeros o caras que quieres repartir en una vuelta completa.",
+    },
+    {
+      title: "Ángulo inicial",
+      body: "Es la posición desde la que quieres comenzar. Déjalo vacío para empezar en 0°. Por ejemplo, escribe 5 para comenzar el primer mecanizado en 5°.",
+    },
+    {
+      title: "Incremento angular",
+      body: "Es el ángulo que debes avanzar entre un mecanizado y el siguiente. La lista muestra todas las posiciones absolutas que debes marcar en la mesa o cabezal graduado.",
+    },
+  ],
+};
+
 export const coneHelp = {
   title: "Grados de cono",
   intro:

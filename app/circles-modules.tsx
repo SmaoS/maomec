@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
-import { circlesHelp } from "../src/content/calculatorHelp";
-import { circlesHelpEn } from "../src/content/calculatorHelp.en";
+import { angularDividerHelp, circlesHelp } from "../src/content/calculatorHelp";
+import {
+  angularDividerHelpEn,
+  circlesHelpEn,
+} from "../src/content/calculatorHelp.en";
 import { useI18n } from "../src/i18n/I18nContext";
 import {
   Buttons,
@@ -16,6 +19,7 @@ import {
 } from "../src/components";
 import {
   calculateCircularPitch,
+  calculateAngularDivisions,
   calculateDividingHead,
   calculateGearModule,
   calculateModuleFromPitch,
@@ -27,10 +31,13 @@ import { saveHistory } from "../src/storage/preferences";
 import { useTheme } from "../src/theme/ThemeContext";
 import { parseLocalizedNumber } from "../src/utils/input";
 type Mode =
-  "module" | "pitchDiameter" | "outside" | "pitch" | "fromPitch" | "divider";
+  "divider" | "module" | "pitchDiameter" | "outside" | "pitch" | "fromPitch";
 export default function Circles() {
   const { colors } = useTheme();
   const { language, t } = useI18n();
+  const [dividerMethod, setDividerMethod] = useState<"crank" | "angles">(
+    "crank",
+  );
   const modes: [Mode, string][] = [
     ["divider", t("divider")],
     ["module", t("module")],
@@ -39,13 +46,14 @@ export default function Circles() {
     ["pitch", t("circularPitch")],
     ["fromPitch", t("moduleFromPitch")],
   ];
-  const [mode, setMode] = useState<Mode>("module"),
+  const [mode, setMode] = useState<Mode>("divider"),
     [a, setA] = useState(""),
     [b, setB] = useState(""),
     [result, setResult] = useState(""),
     [details, setDetails] = useState<string[]>([]),
     [error, setError] = useState("");
   const two = !["pitch", "fromPitch"].includes(mode);
+  const angularDivider = mode === "divider" && dividerMethod === "angles";
   const labels: Record<Mode, [string, string, string]> = {
     module: [t("pitchDiameter"), t("teeth"), "M = Dp / Z"],
     pitchDiameter: [t("module"), t("teeth"), "Dp = M × Z"],
@@ -64,7 +72,8 @@ export default function Circles() {
     try {
       const x = parseLocalizedNumber(a),
         y = parseLocalizedNumber(b);
-      if (x === null || (two && y === null)) throw new Error(t("completeData"));
+      if (x === null || (two && !angularDivider && y === null))
+        throw new Error(t("completeData"));
       let value: number,
         unit = " mm",
         extra: string[] = [];
@@ -88,6 +97,16 @@ export default function Circles() {
           value = calculateModuleFromPitch(x);
           break;
         case "divider": {
+          if (angularDivider) {
+            const angular = calculateAngularDivisions(x, y ?? 0);
+            value = angular.stepAngle;
+            unit = "°";
+            extra = angular.positions.map(
+              (angle, index) =>
+                `${t("position")} ${index + 1}: ${roundForDisplay(angle, 6)}°`,
+            );
+            break;
+          }
           const r = calculateDividingHead(x, y!);
           value = r.turns;
           unit = ` ${t("turns")}`;
@@ -105,7 +124,9 @@ export default function Circles() {
       setError("");
       void saveHistory({
         type: mode === "divider" ? t("divider") : t("circles"),
-        summary: `${labels[mode][0]}: ${a}${two ? ` · ${labels[mode][1]}: ${b}` : ""}`,
+        summary: angularDivider
+          ? `${t("divisions")}: ${a} · ${t("startAngle")}: ${b || "0"}°`
+          : `${labels[mode][0]}: ${a}${two ? ` · ${labels[mode][1]}: ${b}` : ""}`,
         result: `${roundForDisplay(value!)}${unit}`,
       });
     } catch (e) {
@@ -123,7 +144,13 @@ export default function Circles() {
         options={{
           headerRight: () => (
             <HelpButton
-              {...(language === "es" ? circlesHelp[mode] : circlesHelpEn[mode])}
+              {...(angularDivider
+                ? language === "es"
+                  ? angularDividerHelp
+                  : angularDividerHelpEn
+                : language === "es"
+                  ? circlesHelp[mode]
+                  : circlesHelpEn[mode])}
             />
           ),
         }}
@@ -166,14 +193,50 @@ export default function Circles() {
             ))}
           </ScrollView>
           <CalculatorCard>
+            {mode === "divider" && (
+              <View style={styles.row}>
+                {(["crank", "angles"] as const).map((method) => (
+                  <Pressable
+                    key={method}
+                    onPress={() => {
+                      setDividerMethod(method);
+                      setA("");
+                      setB("");
+                      setResult("");
+                      setError("");
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: 11,
+                      borderRadius: 9,
+                      backgroundColor:
+                        dividerMethod === method
+                          ? colors.accent
+                          : colors.background,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        fontWeight: "700",
+                        color:
+                          dividerMethod === method ? "#FFFFFF" : colors.text,
+                      }}
+                    >
+                      {method === "crank" ? t("crankAndPlate") : t("byAngles")}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
             <NumericInput
-              label={labels[mode][0]}
+              label={angularDivider ? t("divisions") : labels[mode][0]}
               value={a}
               onChangeText={setA}
             />
             {two && (
               <NumericInput
-                label={labels[mode][1]}
+                label={angularDivider ? t("startAngle") : labels[mode][1]}
                 value={b}
                 onChangeText={setB}
               />
@@ -196,14 +259,22 @@ export default function Circles() {
           </CalculatorCard>
           {result && (
             <ResultCard
-              label={mode === "divider" ? t("crankTurns") : t("result")}
+              label={
+                angularDivider
+                  ? t("angularStep")
+                  : mode === "divider"
+                    ? t("crankTurns")
+                    : t("result")
+              }
               value={result}
-              unit={mode === "divider" ? t("turns") : "mm"}
+              unit={
+                angularDivider ? "°" : mode === "divider" ? t("turns") : "mm"
+              }
               details={
                 <View>
                   {details.map((x, i) => (
                     <Text key={i} style={styles.resultDetails}>
-                      {i === 0 && mode === "divider"
+                      {i === 0 && mode === "divider" && !angularDivider
                         ? `${t("recommended")}: `
                         : ""}
                       {x}
