@@ -16,8 +16,13 @@ export async function initializeAds(): Promise<boolean> {
   const ads = await loadGoogleMobileAds();
   if (!ads) return false;
   try {
-    await ads.AdsConsent.requestInfoUpdate();
-    const consent = await ads.AdsConsent.loadAndShowConsentFormIfRequired();
+    let consent;
+    try {
+      consent = await ads.AdsConsent.gatherConsent();
+    } catch {
+      // UMP permits using the last known consent state after a transient update error.
+      consent = await ads.AdsConsent.getConsentInfo();
+    }
     if (!consent.canRequestAds) return false;
     await ads.default().initialize();
     return true;

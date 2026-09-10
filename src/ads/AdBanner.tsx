@@ -18,6 +18,7 @@ export function AdBanner() {
     bannerSize: BannerAdSizeType;
   } | null>(null);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!appConfig.adsEnabled) return;
@@ -34,6 +35,15 @@ export function AdBanner() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!failed) return;
+    const retryTimer = setTimeout(() => {
+      setAttempt((current) => current + 1);
+      setFailed(false);
+    }, 30_000);
+    return () => clearTimeout(retryTimer);
+  }, [failed]);
 
   if (
     !appConfig.adsEnabled ||
@@ -57,6 +67,7 @@ export function AdBanner() {
         </Text>
       )}
       <NativeBannerAd
+        key={attempt}
         unitId={adConfig.bannerUnitId}
         size={nativeAds.bannerSize}
         requestOptions={{ requestNonPersonalizedAdsOnly: true }}

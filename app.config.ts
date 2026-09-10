@@ -29,7 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: isAndroidPro ? "MaoMec Pro" : "MaoMec",
     owner: "tecngo",
     slug: "maomec",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./icon-app-maomec.png",
     scheme: "maomec",

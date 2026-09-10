@@ -16,13 +16,17 @@ export function AdProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (!appConfig.adsEnabled) return;
     let active = true;
-    void (async () => {
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const start = async () => {
       const ready = initialized || (await initializeAds());
       if (ready) initialized = true;
       if (active) setCanRequestAds(ready);
-    })();
+      if (!ready && active) retryTimer = setTimeout(start, 30_000);
+    };
+    void start();
     return () => {
       active = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
   return (
