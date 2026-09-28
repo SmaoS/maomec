@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ScrollView, Text } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
@@ -23,31 +23,20 @@ export default function Cone() {
   const [D, setD] = useState(""),
     [d, setd] = useState(""),
     [l, setL] = useState("");
-  const [r, setR] = useState<ReturnType<typeof calculateConeAngle> | null>(
-    null,
-  );
-  const [error, setError] = useState("");
-  const calc = () => {
+  const calculation = useMemo(() => {
+    const values = [D, d, l].map(parseLocalizedNumber);
+    if (values.some((value) => value === null))
+      return { result: null, error: "" };
     try {
-      const values = [D, d, l].map(parseLocalizedNumber);
-      if (values.some((v) => v === null)) throw new Error(t("completeData"));
-      const result = calculateConeAngle(values[0]!, values[1]!, values[2]!);
-      setR(result);
-      setError("");
-      void saveHistory({
-        type: t("cone"),
-        summary: `Ø${D} / Ø${d} · L${l}`,
-        result: `${roundForDisplay(result.semiAngle)}°`,
-      });
-    } catch (e) {
-      setError(
-        e instanceof Error && e.message === t("completeData")
-          ? e.message
-          : t("invalidData"),
-      );
-      setR(null);
+      return {
+        result: calculateConeAngle(values[0]!, values[1]!, values[2]!),
+        error: "",
+      };
+    } catch {
+      return { result: null, error: t("invalidData") };
     }
-  };
+  }, [D, d, l, t]);
+  const r = calculation.result;
   return (
     <>
       <Stack.Screen
@@ -78,15 +67,23 @@ export default function Cone() {
               onChangeText={setL}
               unit="mm"
             />
-            {error && <Text style={styles.error}>{error}</Text>}
+            {calculation.error && (
+              <Text style={styles.error}>{calculation.error}</Text>
+            )}
             <Buttons
-              onCalculate={calc}
+              onCalculate={() => {
+                if (!r) return;
+                void saveHistory({
+                  type: t("cone"),
+                  summary: `Ø${D} / Ø${d} · L${l}`,
+                  result: `${roundForDisplay(r.semiAngle)}°`,
+                });
+              }}
+              calculateLabel={t("save")}
               onClear={() => {
                 setD("");
                 setd("");
                 setL("");
-                setR(null);
-                setError("");
               }}
             />
             <FormulaCard formula="α = atan((D − d) / (2 × L))">

@@ -38,9 +38,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       supportsTablet: true,
       bundleIdentifier: "com.maomec.app",
       buildNumber: "1",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       package: variant === "free" ? "com.maomec.app" : "com.maomec.pro",
+      blockedPermissions:
+        variant === "pro"
+          ? ["com.google.android.gms.permission.AD_ID"]
+          : [],
       versionCode:
         Number.isFinite(androidVersionCode) && androidVersionCode > 0
           ? androidVersionCode
@@ -52,6 +59,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       "expo-router",
       "expo-font",
+      ["expo-status-bar"],
       [
         "expo-build-properties",
         {

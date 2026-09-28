@@ -1,4 +1,6 @@
 /** Funciones puras. Todas las longitudes usan la misma unidad salvo indicación. */
+import { GEAR_CUTTER_RANGES } from "../constants/gearCutterRanges";
+
 const positive = (value: number, name: string) => {
   if (!Number.isFinite(value) || value <= 0)
     throw new Error(`${name} debe ser mayor que cero.`);
@@ -136,3 +138,92 @@ export function decimalToFraction(value: number, denominator = 128) {
 }
 export const roundForDisplay = (value: number, decimals = 3) =>
   Number(value.toFixed(decimals));
+
+export function selectGearCutter(teeth: number, module: number) {
+  positive(teeth, "Los dientes");
+  positive(module, "El módulo");
+  if (!Number.isInteger(teeth) || teeth < 12)
+    throw new Error("El juego clásico requiere al menos 12 dientes enteros.");
+  const range = GEAR_CUTTER_RANGES.find(
+    (item) =>
+      teeth >= item.minTeeth &&
+      (item.maxTeeth === null || teeth <= item.maxTeeth),
+  );
+  if (!range)
+    throw new Error("No existe una fresa configurada para ese rango.");
+  return { ...range, module };
+}
+
+export function calculateMetricThread(diameter: number, pitch: number) {
+  positive(diameter, "El diámetro nominal");
+  positive(pitch, "El paso");
+  return {
+    diameter,
+    pitch,
+    turnsPerMm: 1 / pitch,
+    approximateTpi: 25.4 / pitch,
+  };
+}
+
+export function calculateImperialThread(diameterInches: number, tpi: number) {
+  positive(diameterInches, "El diámetro");
+  positive(tpi, "Las roscas por pulgada");
+  return { diameterInches, tpi, pitchInches: 1 / tpi, pitchMm: 25.4 / tpi };
+}
+
+export function calculateRpm(cuttingSpeed: number, diameter: number) {
+  positive(cuttingSpeed, "La velocidad de corte");
+  positive(diameter, "El diámetro");
+  return (1000 * cuttingSpeed) / (Math.PI * diameter);
+}
+
+export function calculateCuttingSpeed(rpm: number, diameter: number) {
+  positive(rpm, "Las RPM");
+  positive(diameter, "El diámetro");
+  return (Math.PI * diameter * rpm) / 1000;
+}
+
+export function calculateFeedRate(
+  feedPerTooth: number,
+  teeth: number,
+  rpm: number,
+) {
+  positive(feedPerTooth, "El avance por diente");
+  positive(teeth, "Los dientes");
+  positive(rpm, "Las RPM");
+  if (!Number.isInteger(teeth))
+    throw new Error("Los dientes deben ser enteros.");
+  return feedPerTooth * teeth * rpm;
+}
+
+export function solveRightTriangle(values: {
+  opposite?: number;
+  adjacent?: number;
+  hypotenuse?: number;
+}) {
+  const supplied = Object.entries(values).filter(
+    ([, value]) => value !== undefined,
+  );
+  if (supplied.length !== 2)
+    throw new Error("Introduce exactamente dos lados.");
+  supplied.forEach(([name, value]) => positive(value!, name));
+  let { opposite, adjacent, hypotenuse } = values;
+  if (opposite !== undefined && adjacent !== undefined)
+    hypotenuse = Math.hypot(opposite, adjacent);
+  else if (opposite !== undefined && hypotenuse !== undefined) {
+    if (opposite >= hypotenuse)
+      throw new Error("La hipotenusa debe ser el lado mayor.");
+    adjacent = Math.sqrt(hypotenuse ** 2 - opposite ** 2);
+  } else if (adjacent !== undefined && hypotenuse !== undefined) {
+    if (adjacent >= hypotenuse)
+      throw new Error("La hipotenusa debe ser el lado mayor.");
+    opposite = Math.sqrt(hypotenuse ** 2 - adjacent ** 2);
+  }
+  const angle = (Math.atan2(opposite!, adjacent!) * 180) / Math.PI;
+  return {
+    opposite: opposite!,
+    adjacent: adjacent!,
+    hypotenuse: hypotenuse!,
+    angle,
+  };
+}

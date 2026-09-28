@@ -36,6 +36,13 @@ const cards = [
     icon: "swap-horizontal-outline" as const,
     path: "/converter" as const,
   },
+  {
+    key: "tools",
+    titleKey: "moreTools" as TranslationKey,
+    descriptionKey: "moreToolsDesc" as TranslationKey,
+    icon: "construct-outline" as const,
+    path: "/tools" as const,
+  },
 ];
 export default function Home() {
   const { colors, darkMode, toggleTheme } = useTheme();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
@@ -27,12 +27,19 @@ import {
   calculateOutsideDiameter,
   calculatePitchDiameter,
   roundForDisplay,
+  selectGearCutter,
 } from "../src/domain/math";
 import { saveHistory } from "../src/storage/preferences";
 import { useTheme } from "../src/theme/ThemeContext";
 import { parseLocalizedNumber } from "../src/utils/input";
 type Mode =
-  "divider" | "module" | "pitchDiameter" | "outside" | "pitch" | "fromPitch";
+  | "divider"
+  | "module"
+  | "pitchDiameter"
+  | "outside"
+  | "pitch"
+  | "fromPitch"
+  | "cutter";
 export default function Circles() {
   const { colors } = useTheme();
   const { language, t } = useI18n();
@@ -46,35 +53,50 @@ export default function Circles() {
     ["outside", t("outsideDiameter")],
     ["pitch", t("circularPitch")],
     ["fromPitch", t("moduleFromPitch")],
+    ["cutter", t("gearCutter")],
   ];
   const [mode, setMode] = useState<Mode>("divider"),
     [a, setA] = useState(""),
-    [b, setB] = useState(""),
-    [result, setResult] = useState(""),
-    [details, setDetails] = useState<string[]>([]),
-    [error, setError] = useState("");
+    [b, setB] = useState("");
   const two = !["pitch", "fromPitch"].includes(mode);
   const angularDivider = mode === "divider" && dividerMethod === "angles";
-  const labels: Record<Mode, [string, string, string]> = {
-    module: [t("pitchDiameter"), t("teeth"), "M = Dp / Z"],
-    pitchDiameter: [t("module"), t("teeth"), "Dp = M × Z"],
-    outside: [t("module"), t("teeth"), "De = M × (Z + 2)"],
-    pitch: [t("module"), "", "P = π × M"],
-    fromPitch: [t("circularPitch"), "", "M = P / π"],
-    divider: [
-      t("dividerRatio"),
-      t("divisions"),
-      language === "es"
-        ? "vueltas = relación / divisiones"
-        : "turns = ratio / divisions",
-    ],
-  };
-  const calc = () => {
+  const labels = useMemo<Record<Mode, [string, string, string]>>(
+    () => ({
+      module: [t("pitchDiameter"), t("teeth"), "M = Dp / Z"],
+      pitchDiameter: [t("module"), t("teeth"), "Dp = M × Z"],
+      outside: [t("module"), t("teeth"), "De = M × (Z + 2)"],
+      pitch: [t("module"), "", "P = π × M"],
+      fromPitch: [t("circularPitch"), "", "M = P / π"],
+      divider: [
+        t("dividerRatio"),
+        t("divisions"),
+        language === "es"
+          ? "vueltas = relación / divisiones"
+          : "turns = ratio / divisions",
+      ],
+      cutter: [
+        t("teeth"),
+        t("module"),
+        language === "es"
+          ? "selección por rango de dientes"
+          : "selection by tooth range",
+      ],
+    }),
+    [language, t],
+  );
+  const calculation = useMemo(() => {
     try {
       const x = parseLocalizedNumber(a),
         y = parseLocalizedNumber(b);
-      if (x === null || (two && !angularDivider && y === null))
-        throw new Error(t("completeData"));
+      if (x === null || (two && !angularDivider && y === null)) {
+        return {
+          value: null,
+          result: "",
+          details: [] as string[],
+          unit: "",
+          error: "",
+        };
+      }
       let value: number,
         unit = " mm",
         extra: string[] = [];
@@ -97,6 +119,16 @@ export default function Circles() {
         case "fromPitch":
           value = calculateModuleFromPitch(x);
           break;
+        case "cutter": {
+          const cutter = selectGearCutter(x, y!);
+          value = cutter.cutter;
+          unit = "";
+          extra = [
+            `${t("module")}: ${roundForDisplay(cutter.module)}`,
+            `${t("toothRange")}: ${cutter.minTeeth}–${cutter.maxTeeth ?? t("andMore")}`,
+          ];
+          break;
+        }
         case "divider": {
           if (angularDivider) {
             const angular = calculateAngularDivisions(x, y ?? 0);
@@ -120,24 +152,33 @@ export default function Circles() {
           break;
         }
       }
-      setResult(`${roundForDisplay(value!)}`);
-      setDetails(extra);
-      setError("");
-      void saveHistory({
-        type: mode === "divider" ? t("divider") : t("circles"),
-        summary: angularDivider
-          ? `${t("divisions")}: ${a} · ${t("startAngle")}: ${b || "0"}°`
-          : `${labels[mode][0]}: ${a}${two ? ` · ${labels[mode][1]}: ${b}` : ""}`,
-        result: `${roundForDisplay(value!)}${unit}`,
-      });
-    } catch (e) {
-      setError(
-        e instanceof Error && e.message === t("completeData")
-          ? e.message
-          : t("invalidData"),
-      );
-      setResult("");
+      return {
+        value: value!,
+        result: `${roundForDisplay(value!)}`,
+        details: extra,
+        unit,
+        error: "",
+      };
+    } catch {
+      return {
+        value: null,
+        result: "",
+        details: [] as string[],
+        unit: "",
+        error: t("invalidData"),
+      };
     }
+  }, [a, angularDivider, b, mode, t, two]);
+  const { result, details, error } = calculation;
+  const saveCurrent = () => {
+    if (calculation.value === null) return;
+    void saveHistory({
+      type: mode === "divider" ? t("divider") : t("circles"),
+      summary: angularDivider
+        ? `${t("divisions")}: ${a} · ${t("startAngle")}: ${b || "0"}°`
+        : `${labels[mode][0]}: ${a}${two ? ` · ${labels[mode][1]}: ${b}` : ""}`,
+      result: `${roundForDisplay(calculation.value)}${calculation.unit}`,
+    });
   };
   return (
     <>
@@ -171,8 +212,6 @@ export default function Circles() {
                   setMode(key);
                   setA("");
                   setB("");
-                  setResult("");
-                  setError("");
                 }}
                 style={{
                   paddingHorizontal: 14,
@@ -203,8 +242,6 @@ export default function Circles() {
                       setDividerMethod(method);
                       setA("");
                       setB("");
-                      setResult("");
-                      setError("");
                     }}
                     style={{
                       flex: 1,
@@ -248,12 +285,11 @@ export default function Circles() {
               </Text>
             )}
             <Buttons
-              onCalculate={calc}
+              onCalculate={saveCurrent}
+              calculateLabel={t("save")}
               onClear={() => {
                 setA("");
                 setB("");
-                setResult("");
-                setError("");
               }}
             />
             <FormulaCard formula={labels[mode][2]} />
@@ -265,11 +301,19 @@ export default function Circles() {
                   ? t("angularStep")
                   : mode === "divider"
                     ? t("crankTurns")
-                    : t("result")
+                    : mode === "cutter"
+                      ? t("cutterNumber")
+                      : t("result")
               }
               value={result}
               unit={
-                angularDivider ? "°" : mode === "divider" ? t("turns") : "mm"
+                angularDivider
+                  ? "°"
+                  : mode === "divider"
+                    ? t("turns")
+                    : mode === "cutter"
+                      ? undefined
+                      : "mm"
               }
               details={
                 <View>

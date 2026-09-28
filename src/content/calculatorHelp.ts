@@ -106,6 +106,25 @@ export const circlesHelp = {
       },
     ],
   },
+  cutter: {
+    title: "Selector de fresa",
+    intro:
+      "Selecciona el número de una fresa evolvente del juego clásico de ocho unidades.",
+    sections: [
+      {
+        title: "Número de dientes",
+        body: "Introduce la cantidad entera de dientes del engranaje. El juego clásico cubre desde 12 dientes hasta cremallera.",
+      },
+      {
+        title: "Módulo",
+        body: "Es el tamaño del diente. Debe coincidir con el módulo marcado en la fresa; la selección numérica depende del rango de dientes.",
+      },
+      {
+        title: "Comprobación",
+        body: "Verifica también que el ángulo de presión de la fresa coincida con el diseño del engranaje.",
+      },
+    ],
+  },
 } satisfies Record<
   string,
   { title: string; intro: string; sections: HelpSection[] }
@@ -215,6 +234,126 @@ export const converterHelp = {
       {
         title: "Fracción y error",
         body: "El resultado se aproxima hasta 1/128 de pulgada. El error indica la pequeña diferencia entre el decimal original y la fracción elegida; cuanto más cercano a cero, mejor.",
+      },
+    ],
+  },
+} satisfies Record<
+  string,
+  { title: string; intro: string; sections: HelpSection[] }
+>;
+
+export const toolsHelp = {
+  metricThread: {
+    title: "Rosca métrica",
+    intro:
+      "Convierte los datos básicos de una rosca métrica a vueltas por milímetro y a su equivalencia aproximada en TPI.",
+    sections: [
+      {
+        title: "Diámetro nominal",
+        body: "Es el diámetro con el que se identifica la rosca. Por ejemplo, en M10 × 1,5 el diámetro nominal es 10 mm. No es la medida del fondo de la rosca.",
+      },
+      {
+        title: "Paso",
+        body: "Es la distancia axial, en milímetros, entre dos crestas consecutivas. En M10 × 1,5 debes introducir 1,5 mm.",
+      },
+      {
+        title: "Cómo leer el resultado",
+        body: "Vueltas por mm indica cuántos hilos caben en un milímetro. El TPI es sólo una conversión aproximada para comparar el paso con roscas imperiales; no convierte una rosca métrica en una imperial compatible.",
+      },
+    ],
+  },
+  imperialThread: {
+    title: "Rosca imperial",
+    intro:
+      "Obtiene el paso en pulgadas y milímetros a partir de la cantidad de hilos por pulgada.",
+    sections: [
+      {
+        title: "Diámetro",
+        body: "Introduce el diámetro nominal en pulgadas decimales. Por ejemplo, para 1/2 pulgada escribe 0,5.",
+      },
+      {
+        title: "Hilos por pulgada (TPI)",
+        body: "Es la cantidad de crestas completas contenidas en una pulgada. Un valor TPI mayor significa un paso más fino.",
+      },
+      {
+        title: "Resultado",
+        body: "El paso es la distancia entre dos hilos consecutivos. La conversión a milímetros ayuda a comparar medidas, pero no determina por sí sola la norma ni el perfil de la rosca.",
+      },
+    ],
+  },
+  rpm: {
+    title: "Calcular RPM",
+    intro:
+      "Calcula la velocidad de giro necesaria para alcanzar una velocidad de corte determinada sobre un diámetro.",
+    sections: [
+      {
+        title: "Velocidad de corte (Vc)",
+        body: "Es la velocidad tangencial recomendada para el material y la herramienta, expresada en metros por minuto. Debe obtenerse de una tabla fiable del fabricante o del proceso.",
+      },
+      {
+        title: "Diámetro",
+        body: "Introduce en milímetros el diámetro efectivo donde ocurre el corte: diámetro de la pieza en torneado o de la herramienta en fresado/taladrado.",
+      },
+      {
+        title: "Uso seguro",
+        body: "El resultado es teórico. Selecciona una velocidad disponible en la máquina y respeta los límites del husillo, la sujeción, la herramienta y el material.",
+      },
+    ],
+  },
+  cuttingSpeed: {
+    title: "Calcular velocidad de corte",
+    intro:
+      "Obtiene la velocidad tangencial producida por unas RPM y un diámetro conocidos.",
+    sections: [
+      {
+        title: "RPM",
+        body: "Son las revoluciones completas por minuto del husillo o de la pieza.",
+      },
+      {
+        title: "Diámetro",
+        body: "Introduce el diámetro efectivo de corte en milímetros. Si el diámetro cambia durante la operación, la velocidad de corte también cambia.",
+      },
+      {
+        title: "Resultado",
+        body: "La velocidad se muestra en m/min. Compárala con la recomendación del fabricante para evitar desgaste, calentamiento o rotura de la herramienta.",
+      },
+    ],
+  },
+  feed: {
+    title: "Avance de fresado",
+    intro:
+      "Calcula cuánto debe avanzar la mesa por minuto para mantener el avance indicado en cada diente.",
+    sections: [
+      {
+        title: "Avance por diente (fz)",
+        body: "Es el espesor de viruta previsto para cada diente, en milímetros por diente. Usa el valor recomendado para la herramienta, el material y la rigidez del montaje.",
+      },
+      {
+        title: "Dientes de la fresa",
+        body: "Introduce solamente la cantidad de filos que realmente participan en el corte, no el número de dientes del engranaje que se está fabricando.",
+      },
+      {
+        title: "RPM y resultado",
+        body: "Las RPM son la velocidad del husillo. El resultado Vf se expresa en mm/min y corresponde al avance de la mesa o del eje programado.",
+      },
+    ],
+  },
+  triangle: {
+    title: "Triángulo rectángulo",
+    intro:
+      "Resuelve los lados y el ángulo agudo de un triángulo que tiene un ángulo recto de 90°.",
+    sections: [
+      {
+        title: "Qué datos introducir",
+        body: "Escribe exactamente dos lados y deja vacío el tercero. Ambos catetos forman el ángulo recto; la hipotenusa está enfrente de los 90° y siempre es el lado más largo.",
+      },
+      {
+        title: "Opuesto y adyacente",
+        body: "El cateto opuesto queda frente al ángulo calculado. El adyacente toca ese ángulo. Si intercambias ambos, obtendrás el otro ángulo agudo.",
+      },
+      {
+        title: "Resultado",
+        body: "La aplicación calcula el lado faltante y el ángulo entre el cateto adyacente y la hipotenusa. Usa las mismas unidades para todos los lados.",
       },
     ],
   },

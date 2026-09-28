@@ -30,3 +30,27 @@ Los cálculos conservan precisión completa y redondean solamente al mostrarse. 
 - `milésimas = mm / 0.0254`
 - `mm = milésimas × 0.0254`
 - La fracción se aproxima al múltiplo más próximo de 1/128 y se simplifica.
+
+## Selector de fresa para engranajes
+
+La fresa se selecciona por el rango clásico de dientes del juego de ocho fresas evolventes. El módulo y el ángulo de presión deben coincidir con el engranaje; no se interpolan.
+
+## Roscas
+
+- Métrica: `vueltas por mm = 1 / paso`; `TPI aproximado = 25.4 / paso_mm`.
+- Imperial: `paso_pulgadas = 1 / TPI`; `paso_mm = 25.4 / TPI`.
+
+## Velocidad de corte
+
+- `RPM = (1000 × Vc) / (π × D)`
+- `Vc = (π × D × RPM) / 1000`
+
+`Vc` se expresa en m/min y `D` en mm.
+
+## Avance de fresado
+
+`Vf = fz × Z × RPM`, donde `fz` es mm/diente, `Z` es la cantidad de dientes de la fresa y `Vf` se expresa en mm/min.
+
+## Triángulos rectángulos
+
+`a² + b² = c²` y `ángulo = atan(cateto opuesto / cateto adyacente)`. Se requieren exactamente dos lados conocidos.

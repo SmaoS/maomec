@@ -1,6 +1,8 @@
 # MaoMec
 
-Calculadora técnica industrial móvil, offline y en español. Incluye engranajes y módulos, cabezal divisor, conos, longitud de cuerda, conversiones, fracciones, favoritos, historial, tema claro/oscuro y compartir resultados.
+Calculadora técnica industrial móvil y offline en español e inglés. Incluye engranajes y selector de fresa, cabezal divisor, conos, longitud de cuerda, conversiones, fracciones, roscas, RPM y velocidad de corte, avance, trigonometría, favoritos, historial, tema claro/oscuro y compartir resultados.
+
+Los resultados se actualizan automáticamente cuando se completan los datos mínimos. El botón **Guardar** registra el resultado visible en el historial y **Limpiar** reinicia el formulario.
 
 ## Ejecución
 

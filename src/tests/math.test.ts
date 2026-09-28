@@ -6,6 +6,13 @@ import {
   calculateGearModule,
   calculateOutsideDiameter,
   calculatePitchDiameter,
+  calculateMetricThread,
+  calculateImperialThread,
+  calculateRpm,
+  calculateCuttingSpeed,
+  calculateFeedRate,
+  selectGearCutter,
+  solveRightTriangle,
   decimalToFraction,
   mmToInches,
   mmToThousandths,
@@ -47,5 +54,23 @@ describe("dominio matemático", () => {
     expect(r.stepAngle).toBe(15);
     expect(r.positions.slice(0, 4)).toEqual([0, 15, 30, 45]);
     expect(r.positions).toHaveLength(24);
+  });
+  test("selecciona la fresa clásica por rango", () => {
+    expect(selectGearCutter(24, 2.5)).toMatchObject({ cutter: 5, module: 2.5 });
+    expect(selectGearCutter(135, 2)).toMatchObject({ cutter: 1 });
+  });
+  test("convierte datos de roscas métricas e imperiales", () => {
+    expect(calculateMetricThread(10, 1.5).approximateTpi).toBeCloseTo(16.9333);
+    expect(calculateImperialThread(0.5, 20).pitchMm).toBeCloseTo(1.27);
+  });
+  test("calcula RPM, velocidad de corte y avance", () => {
+    expect(calculateRpm(30, 50)).toBeCloseTo(190.9859);
+    expect(calculateCuttingSpeed(1000, 20)).toBeCloseTo(62.8319);
+    expect(calculateFeedRate(0.05, 4, 1000)).toBe(200);
+  });
+  test("resuelve un triángulo rectángulo 3-4-5", () => {
+    expect(solveRightTriangle({ opposite: 3, adjacent: 4 })).toMatchObject({
+      hypotenuse: 5,
+    });
   });
 });

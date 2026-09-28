@@ -25,6 +25,7 @@ function Navigation() {
         <Stack.Screen name="cone-angle" options={{ title: t("cone") }} />
         <Stack.Screen name="chord-length" options={{ title: t("chord") }} />
         <Stack.Screen name="converter" options={{ title: t("converter") }} />
+        <Stack.Screen name="tools" options={{ title: t("moreTools") }} />
         <Stack.Screen name="history" options={{ title: t("history") }} />
       </Stack>
     </>

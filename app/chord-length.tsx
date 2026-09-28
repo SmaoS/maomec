@@ -1,5 +1,5 @@
 import { Share, ScrollView, Text } from "react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Stack } from "expo-router";
 import { HelpButton } from "../src/components/HelpButton";
 import { AdBanner } from "../src/ads/AdBanner";
@@ -22,33 +22,17 @@ export default function Chord() {
   const { language, t } = useI18n();
   const [n, setN] = useState("");
   const [d, setD] = useState("");
-  const [result, setResult] = useState<ReturnType<
-    typeof calculateChordLength
-  > | null>(null);
-  const [error, setError] = useState("");
-  const calculate = () => {
+  const calculation = useMemo(() => {
+    const holes = parseLocalizedNumber(n),
+      diameter = parseLocalizedNumber(d);
+    if (holes === null || diameter === null) return { result: null, error: "" };
     try {
-      const holes = parseLocalizedNumber(n),
-        diameter = parseLocalizedNumber(d);
-      if (holes === null || diameter === null)
-        throw new Error(t("completeData"));
-      const r = calculateChordLength(holes, diameter);
-      setResult(r);
-      setError("");
-      void saveHistory({
-        type: t("chord"),
-        summary: `${holes} ${t("holes")} · Ø${diameter} mm`,
-        result: `${roundForDisplay(r.chord)} mm`,
-      });
-    } catch (e) {
-      setError(
-        e instanceof Error && e.message === t("completeData")
-          ? e.message
-          : t("invalidData"),
-      );
-      setResult(null);
+      return { result: calculateChordLength(holes, diameter), error: "" };
+    } catch {
+      return { result: null, error: t("invalidData") };
     }
-  };
+  }, [d, n, t]);
+  const result = calculation.result;
   const text = result
     ? language === "es"
       ? `MaoMec\n\nLongitud de cuerda\nDiámetro: ${d} mm\nAgujeros: ${n}\nSeparación angular: ${roundForDisplay(result.angle)}°\nLongitud: ${roundForDisplay(result.chord)} mm`
@@ -77,14 +61,22 @@ export default function Chord() {
               onChangeText={setD}
               unit="mm"
             />
-            {error && <Text style={styles.error}>{error}</Text>}
+            {calculation.error && (
+              <Text style={styles.error}>{calculation.error}</Text>
+            )}
             <Buttons
-              onCalculate={calculate}
+              onCalculate={() => {
+                if (!result) return;
+                void saveHistory({
+                  type: t("chord"),
+                  summary: `${n} ${t("holes")} · Ø${d} mm`,
+                  result: `${roundForDisplay(result.chord)} mm`,
+                });
+              }}
+              calculateLabel={t("save")}
               onClear={() => {
                 setN("");
                 setD("");
-                setResult(null);
-                setError("");
               }}
             />
             <FormulaCard formula="C = D × sin(180° / N)">
