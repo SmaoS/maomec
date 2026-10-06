@@ -20,6 +20,8 @@ credentials.json
 *.p12
 *.key
 *.mobileprovision
+*.ipa
+*.aab
 
 # Metro
 .metro-health-check*
