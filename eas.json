@@ -45,7 +45,7 @@
         "APP_ENV": "production"
       }
     },
-    "ios-pro-simulator": {
+    "simulator": {
       "extends": "ios-pro",
       "distribution": "internal",
       "ios": {
